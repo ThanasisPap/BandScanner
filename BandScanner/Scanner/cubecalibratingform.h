@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QDialog>
 #include <QMainWindow>
+#include "definitions.h"
 
 namespace Ui {
 class CubeCalibratingForm;
@@ -17,10 +18,12 @@ public:
     explicit CubeCalibratingForm(QWidget *parent = 0);
     ~CubeCalibratingForm();
     int photometry() const;
+    CubeType cubeType() const;
 
 private:
     Ui::CubeCalibratingForm *ui;
     int mPhotometry;
+    CubeType mCubeType;
 
 public slots:
     void photometryUpdate(double photometry);

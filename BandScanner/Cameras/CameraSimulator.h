@@ -8,6 +8,9 @@
 #include <QEventLoop>
 #include <QTimer>
 
+//#define SIMULATOR_IMAGE (":/Resurces/Tulips.jpg")
+#define SIMULATOR_IMAGE ("D:/work/Xania/BandScanner/BandScanner/Resurces/Tulips.jpg")
+
 class CameraSimulator : public MCameraBase
 {
 public:
@@ -18,7 +21,7 @@ public:
     bool isCameraConnected();
     int getInputSourceWidth();
     int getInputSourceHeight();
-    bool grabFrame(QImage *testFrame);
+    bool grabFrame(QImage *mTestFrame);
 
     //Declared for debug only
     int Initialize();
@@ -45,7 +48,7 @@ public:
 
 private:
 //    cv::VideoCapture cap;
-      QImage testFrame;
+      QImage mTestFrame;
       QMutex mMutex;
 };
 

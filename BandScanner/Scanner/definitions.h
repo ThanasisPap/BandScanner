@@ -30,7 +30,7 @@ typedef enum {
 
 enum CubeType {
     PHOTOMETRY,
-    STEREOSCOPY,
+    WITHOUT_PHOTOMETRY,
     UNDEFINED
 };
 

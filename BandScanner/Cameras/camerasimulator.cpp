@@ -18,12 +18,12 @@ bool CameraSimulator::grabFrame(QImage *grabedFrame)
 
     mMutex.lock();
     // Retrieve frame
-    *grabedFrame = testFrame.copy();
+    *grabedFrame = mTestFrame.copy();
     while(grabedFrame->width()==0 || grabedFrame->height()==0){
         QEventLoop loop;
         QTimer::singleShot(100, &loop, SLOT(quit()));
         loop.exec();
-        *grabedFrame = testFrame.copy();
+        *grabedFrame = mTestFrame.copy();
     }
 
     //return true;
@@ -61,9 +61,9 @@ bool CameraSimulator::grabFrame(QImage *grabedFrame)
 bool CameraSimulator::connectToCamera()
 {
     //Load test image
-    if(testFrame.load("c:/MyCloud/Xania/src/tuclibs/Images/Jellyfish.jpg")){
-        width = testFrame.width();
-        height = testFrame.height();
+    if( mTestFrame.load( QString(SIMULATOR_IMAGE) )  ){
+        width = mTestFrame.width();
+        height = mTestFrame.height();
         connected = true;
     }
     else{
@@ -74,7 +74,7 @@ bool CameraSimulator::connectToCamera()
 
 bool CameraSimulator::disconnectCamera()
 {
-    //testFrame.release();
+    //mTestFrame.release();
     connected = false;
     return true;
 }
@@ -86,12 +86,12 @@ bool CameraSimulator::isCameraConnected()
 
 int CameraSimulator::getInputSourceWidth()
 {
-    return testFrame.width();
+    return mTestFrame.width();
 }
 
 int CameraSimulator::getInputSourceHeight()
 {
-    return testFrame.height();
+    return mTestFrame.height();
 }
 
 int CameraSimulator::Initialize()

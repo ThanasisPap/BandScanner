@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QtCore>
 #include <QtXml>
+#include "LogDefs.h"
 
 SpectralCube::SpectralCube()
 {
@@ -17,115 +18,162 @@ SpectralCube::~SpectralCube()
 bool SpectralCube::loadCube()
 {
     //Ask for input directory
-    QString inPath = QFileDialog::getExistingDirectory(0,"Please select cube folder", QDir::currentPath());
+    QDomDocument doc;
+    QString inPath = QFileDialog::getOpenFileName(0,"Open Spectral Cube's .xml file", QDir::currentPath(), "XML files (*.xml)");
 
     if(inPath.isEmpty()) return false;
-    /*
-     * set index at invalid possition untill cube is loaded
-     */
-    mCubeImageCurrentIndex = -1;
 
-    clearCubeData();
-    /*
-     * Scan directory for all images
-     */
+    QFile file(inPath);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        LOG_E("Failed to open file");
+        return false;
+    }
+    else
+    {
+        if(!doc.setContent(&file))
+        {
+            LOG_E("Failed to copy content");
+            return false;
+        }
+        file.close();
+    }
 
-    //Regular expression looks for 3 numbers
-    QRegularExpression re("\\d\\d\\d");
+    QDomElement root = doc.documentElement();
+    QDomNodeList photItems = root.elementsByTagName("Photometry");
+    QDomNodeList imgItems = root.elementsByTagName("Image");
 
-    //Iterate though all files in the selected path
-    QDirIterator dirIt(inPath, QDirIterator::NoIteratorFlags);
-    while (dirIt.hasNext()) {
-        dirIt.next();
-        QString filepath = dirIt.filePath();
-        if (!QFileInfo(filepath).isFile()) continue;
-        if (!(QFileInfo(filepath).suffix() == "png" || QFileInfo(filepath).suffix() == "bmp") ) continue;
+    QDomNode photnode = photItems.at(0);
+    QDomElement photAtt = photnode.toElement();
+    QString condition = photAtt.attribute("Condition");
+    QString value = photAtt.attribute("Value");
 
-        QString filename = dirIt.fileName();
-        QRegularExpressionMatch match = re.match(filename);
-        if (match.hasMatch()){
-            qDebug("Loading %s", filepath.toLocal8Bit().data());
-            int band = match.captured(0).toInt();
-            QImage im(filepath);
-            mSpectralImages.append(spectralImage(band, im));
+    if(condition.contains("NO")) mCubeType = WITHOUT_PHOTOMETRY;
+    if(condition.contains("YES")) mCubeType = PHOTOMETRY;
+
+    mPhotometry = value.toInt();
+    mSpectralImages.clear();
+
+    for(int i=0; i < imgItems.count(); i++)
+    {
+        QDomNode imgnode = imgItems.at(i);
+
+        if(imgnode.isElement())
+        {
+            QDomElement imgAtt = imgnode.toElement();
+            QString imgpath = imgAtt.attribute("SavePath");
+            QString imgband = imgAtt.attribute("Band");
+            QImage img(imgpath);
+            mSpectralImages.append( spectralImage(imgband.toInt(), img));
         }
     }
+
+    //Iterate though all files in the selected path
+//    QDirIterator dirIt(inPath, QDirIterator::NoIteratorFlags);
+//    while (dirIt.hasNext()) {
+//        dirIt.next();
+//        QString filepath = dirIt.filePath();
+//        if (!QFileInfo(filepath).isFile()) continue;
+//        if (!(QFileInfo(filepath).suffix() == "png" || QFileInfo(filepath).suffix() == "bmp") ) continue;
+
+//        QString filename = dirIt.fileName();
+//        QRegularExpressionMatch match = re.match(filename);
+//        if (match.hasMatch()){
+//            qDebug("Loading %s", filepath.toLocal8Bit().data());
+//            int band = match.captured(0).toInt();
+//            QImage im(filepath);
+//            //Display images
+
+//            mSpectralImages.append(spectralImage(band, im));
+
+//            QEventLoop loop;
+//            QTimer::singleShot(10, &loop, SLOT(quit()));
+//            loop.exec();
+//        }
+//    }
     qSort(mSpectralImages);
     return true;
 }
 
 bool SpectralCube::saveCube()
 {
-    QFileDialog dialog(NULL);
-    QString path = dialog.getExistingDirectory(NULL,
-                                            "Please select save folder");
-//                        QDir::homePath());
+    qSort(mSpectralImages);
 
+    QFileDialog dialog(NULL);
+    QString path = dialog.getSaveFileName(NULL,
+                                            "Save Spectral Cube",
+                                            "XML files (*.xml)");
 
     if(path.isEmpty()) return false;
 
-    qSort(mSpectralImages);
+    QDir().mkdir(path);
+    QString filename = QDir(path).dirName();
+    QString cubePath = path + "/Spectral_Cube";
+    QString dataPath = path + "/Data";
+    QString imagesPath = path + "/Images";
+    QDir().mkdir(cubePath);
+    QDir().mkdir(dataPath);
+    QDir().mkdir(imagesPath);
 
     QDateTime local(QDateTime::currentDateTime());
     QDomDocument document;
-    QDomElement root = document.createElement("Spectral Cube " + local.toString());
+    QDomProcessingInstruction instr = document.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+    document.appendChild(instr);
+    QDomElement root = document.createElement("Spectral_Cube");
+    root.setAttribute("Name", filename);
+    root.setAttribute("Capture-Time", local.toString());
     document.appendChild(root);
     QDomElement myCube;
 
-    if(photometry() == -1) mCubeType = STEREOSCOPY;
-    else mCubeType = PHOTOMETRY;
 
     if(mCubeType == PHOTOMETRY)
     {
         myCube = document.createElement("Photometry");
-        myCube.setAttribute("Status ","YES");
+        myCube.setAttribute("Value ", QString::number(mPhotometry));
+        myCube.setAttribute("Condition", "YES");
         root.appendChild(myCube);
     }
 
-    if(mCubeType == STEREOSCOPY)
+    if(mCubeType == WITHOUT_PHOTOMETRY)
     {
         myCube = document.createElement("Photometry");
-        myCube.setAttribute("Status ","NO");
+        myCube.setAttribute("Value ", QString::number(mPhotometry));
+        myCube.setAttribute("Condition", "NO");
         root.appendChild(myCube);
     }
 
-    int temp=0;
-//    for(int band=mBandStart; band<mBandEnd; band += step)
-//    {
-//        temp++;
-//        QString savePathName = QString("%1/image%2.png").arg(path).arg(band);
-//        bool saved = spectralImages().at(temp).image.save(savePathName);
-//        if (!saved) return false;
-//        QDomElement img = document.createElement("Spectra Image");
-//        img.setAttribute("No", QString::number(temp));
-//        img.setAttribute("Band", QString::number(band) + "nm");
-//        myCube.appendChild(img);
-//    }
+    int temp = 0;
     foreach(spectralImage val, mSpectralImages)
+    {
+        temp++;
+        QString savePathName = QString("%1/image%2.png").arg(cubePath).arg(val.band);
+        bool saved = val.image.save(savePathName);
+        if (!saved) return false;
+        QFile file(savePathName);
+        if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
-        temp ++;
-            QString savePathName = QString("%1/image%2.png").arg(path).arg(val.band);
-            bool saved = val.image.save(savePathName);
-            if (!saved) return false;
-            QDomElement img = document.createElement("Spectra Image");
-            img.setAttribute("No", QString::number(temp));
-            img.setAttribute("Band", QString::number(val.band) + "nm");
-            myCube.appendChild(img);
+            LOG_E("Failed to open image File");
+            return false;
         }
+        file.setPermissions(QFile::ReadUser);
+        QDomElement img = document.createElement("Image");
+        img.setAttribute("Band", val.band);
+        img.setAttribute("SavePath", savePathName);
+        myCube.appendChild(img);
+    }
 
-    QFile file(path + "cubeXML.xml");
+    QFile file(path + "/" + filename + ".xml");
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        qDebug("Failed to open .xml file at path %s", qPrintable(path));
+        LOG_E("Failed to open .xml file at path %s", path.toLocal8Bit().data());
     } else {
         QTextStream stream(&file);
         stream << document.toString();
         file.close();
-        qDebug("Success .xml writing  at %s ...", qPrintable(path));
+        LOG_D("Success .xml writing");
     }
-
-    //HD:Why return false?
-    return false;
+    file.setPermissions(QFile::ReadUser);
+    return true;
 }
 
 /**

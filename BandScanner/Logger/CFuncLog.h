@@ -16,7 +16,6 @@
 #include "LogDefs.h"
 #include <stdio.h>
 #include <QString>
-#include <cstdio>
 
 class CFuncLog
 {

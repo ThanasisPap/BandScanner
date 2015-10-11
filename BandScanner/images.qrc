@@ -26,4 +26,7 @@
         <file>Resurces/buttonView05.png</file>
         <file>Resurces/folder.png</file>
     </qresource>
+    <qresource prefix="/Images">
+        <file>Resurces/Tulips.jpg</file>
+    </qresource>
 </RCC>

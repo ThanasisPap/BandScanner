@@ -278,6 +278,7 @@ void MainWindow::handleCaptureCube(int from, int to, int step)
 
     mSpectralCube.clearCubeData();
     mSpectralCube.setPhotometry( cubeCalibratingForm->photometry() );
+    mSpectralCube.setCubeType( cubeCalibratingForm->cubeType() );
     mSerialControler->captureCube(from, to, step);
     delete cubeCalibratingForm;
 }

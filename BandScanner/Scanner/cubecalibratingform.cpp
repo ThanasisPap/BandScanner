@@ -24,6 +24,12 @@ void CubeCalibratingForm::photometryUpdate(double photometry)
     mPhotometry = photometry;
 }
 
+CubeType CubeCalibratingForm::cubeType() const
+{
+    return mCubeType;
+}
+
+
 void CubeCalibratingForm::on_choiceButton_clicked()
 {
     if(ui->radioButton->isChecked())
@@ -33,7 +39,7 @@ void CubeCalibratingForm::on_choiceButton_clicked()
     }
     if(ui->radioButton_2->isChecked())
     {
-        mPhotometry = -1;
+        mCubeType = WITHOUT_PHOTOMETRY;
         close();
     }
 }
@@ -46,6 +52,7 @@ void CubeCalibratingForm::on_pushButton_clicked()
 
 void CubeCalibratingForm::on_startButton_clicked()
 {
+    mCubeType = PHOTOMETRY;
     close();
 }
 
