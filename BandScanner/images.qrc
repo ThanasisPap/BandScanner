@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/Buttons">
+        <file>Resurces/ToolButton.png</file>
+        <file>Resurces/down_button.png</file>
+        <file>Resurces/left_button.png</file>
+        <file>Resurces/right_button.png</file>
+        <file>Resurces/up_button.png</file>
+        <file>Resurces/Analysis_button.png</file>
+        <file>Resurces/Aquisition_button.png</file>
+        <file>Resurces/Settings_button.png</file>
+        <file>Resurces/disc.png</file>
+        <file>Resurces/Bullet-Arrow-Down.png</file>
+        <file>Resurces/Bullet-Arrow-Left.png</file>
+        <file>Resurces/Bullet-Arrow-Right.png</file>
+        <file>Resurces/Bullet-Arrow-Up.png</file>
+        <file>Resurces/Color_Button.png</file>
+        <file>Resurces/Spectral_Image_Button.png</file>
+        <file>Resurces/Spectral_Cube_Button.png</file>
+        <file>Resurces/background.png</file>
+        <file>Resurces/Save-icon.png</file>
+        <file>Resurces/Snow_flake_icon.png</file>
+        <file>Resurces/buttonView01.png</file>
+        <file>Resurces/buttonView02.png</file>
+        <file>Resurces/buttonView03.png</file>
+        <file>Resurces/buttonView04.png</file>
+        <file>Resurces/buttonView05.png</file>
+        <file>Resurces/folder.png</file>
+    </qresource>
+</RCC>
